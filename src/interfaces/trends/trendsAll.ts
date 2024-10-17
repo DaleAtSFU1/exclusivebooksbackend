@@ -1,9 +1,10 @@
 export interface General {
-  display_name: number | string;
-  genre_id: number;
-  author_id: string; // Changed to string
+  display_name: string;
+  genre_id: string;
+  author_id: string;
+  author_master_id: string; // New field
   customer_id: number;
-  store_id: number;
+  store_id: string;
   amount: number;
 }
   

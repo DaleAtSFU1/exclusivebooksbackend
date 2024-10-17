@@ -18,7 +18,7 @@ axiosRetry(axios, {
 });
 
 // Default Store ID for failsafe
-const DEFAULT_STORE_ID = 31000217958; // Generic Store ID
+const DEFAULT_STORE_ID = "31000217958"; // Generic Store ID
 
 export async function createOrUpdateStoreTrend(data: General) {
   try {
@@ -94,7 +94,7 @@ async function postStoreTrendToFreshsales(storeTrend: any, data: General) {
         cf_store: storeTrend.store_id,
         cf_customer: storeTrend.customer_id,
         cf_transaction_count: storeTrend.transaction_count,
-        cf_amount_spent: storeTrend.amount_spent,
+        cf_total_spend: storeTrend.amount_spent,
       },
     },
   };

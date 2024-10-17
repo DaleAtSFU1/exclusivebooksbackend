@@ -20,7 +20,7 @@ axiosRetry(axios, {
 });
 
 // Default Genre ID for failsafe
-const DEFAULT_GENRE_ID = 31000009917; // Generic Genre ID
+const DEFAULT_GENRE_ID = "31000009917"; // Generic Genre ID
 
 export async function createOrUpdateGenreTrend(data: General) {
   try {
@@ -93,10 +93,10 @@ async function postGenreTrendToFreshsales(genreTrend: any, data: General) {
     cm_genre_trend: {
       name: genreTrend.genretrend_id.toString(),
       custom_field: {
-        cf_genre: genreTrend.genre_id,
+        cf_genre_subgenre: genreTrend.genre_id,
         cf_customer: genreTrend.customer_id,
         cf_transaction_count: genreTrend.transaction_count,
-        cf_amount_spent: genreTrend.amount_spent,
+        cf_total_spend: genreTrend.amount_spent,
       },
     },
   };

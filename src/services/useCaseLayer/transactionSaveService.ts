@@ -1,5 +1,3 @@
-// src/services/transactions/SaveTransaction.ts
-
 import { SaveTransactionRequest } from "../../interfaces/transactions/saveTransactionRequest";
 import log4js from "log4js";
 import { SaveTransactionResponse } from "../../interfaces/transactions/saveTransactionResponse";
@@ -31,9 +29,11 @@ export class SaveTransaction {
   productRes: any;
 
   // Default IDs for failsafe
-  private readonly DEFAULT_AUTHOR_ID = '31000001887'; // Generic Author ID
-  private readonly DEFAULT_STORE_ID = 31000217958;    // Generic Store ID
-  private readonly DEFAULT_GENRE_ID = 31000009917;    // Generic Genre ID
+    // Default IDs for failsafe
+  private readonly DEFAULT_AUTHOR_ID = "31000001887"; // Generic Author ID
+  private readonly DEFAULT_STORE_ID = "31000217958";  // Generic Store ID
+  private readonly DEFAULT_GENRE_ID = "31000009917";  // Generic Genre ID
+  private readonly DEFAULT_AUTHOR_MASTER_ID = "31000001028";
 
   constructor(transaction: SaveTransactionRequest) {
     this.transaction = transaction;
@@ -108,7 +108,7 @@ export class SaveTransaction {
       },
       timeout: timeoutMilliseconds,
     };
-
+  
     try {
       logger.debug("Fetching product information from external API.");
       this.productRes = await axios.get(
@@ -116,34 +116,67 @@ export class SaveTransaction {
         commonConfig
       );
       logger.info(`Product information fetched successfully.`);
-
-      const authorName = this.productRes.data.product.custom_field.cf_author;
-      const authorId = authorName && authorName.trim() !== '' ? authorName : this.DEFAULT_AUTHOR_ID;
-
-      if (authorId === this.DEFAULT_AUTHOR_ID) {
-        logger.warn("Author name is missing or empty; using default author ID.");
+  
+      const authorName = this.productRes.data.product.custom_field.cf_author?.trim();
+  
+      let authorId: string = this.DEFAULT_AUTHOR_ID;
+      let authorMasterId: string = this.DEFAULT_AUTHOR_MASTER_ID;
+  
+      if (authorName && authorName !== '') {
+        // Perform search to get author ID
+        const query = `name:'${authorName}'`;
+        const searchUrl = `https://ebsa.myfreshworks.com/crm/sales/api/search?q=${encodeURIComponent(query)}&include=cm_author`;
+        const authorLookupRes = await axios.get(searchUrl, commonConfig);
+  
+        if (authorLookupRes.data && authorLookupRes.data.length > 0) {
+          authorId = authorLookupRes.data[0].id;
+  
+          // Fetch the author record to get cf_author_master
+          const authorUrl = `https://ebsa.myfreshworks.com/crm/sales/api/custom_module/cm_author/${authorId}`;
+          const authorRes = await axios.get(authorUrl, commonConfig);
+  
+          if (authorRes.data && authorRes.data.cm_author) {
+            authorMasterId = authorRes.data.cm_author.custom_field.cf_author_master;
+  
+            if (!authorMasterId) {
+              logger.warn("Author master ID not found in author record; using default author master ID.");
+              authorMasterId = this.DEFAULT_AUTHOR_MASTER_ID;
+            }
+          } else {
+            logger.warn("Author record not found; using default author master ID.");
+            authorMasterId = this.DEFAULT_AUTHOR_MASTER_ID;
+          }
+        } else {
+          logger.warn("Author not found in search; using default author ID and author master ID.");
+        }
+      } else {
+        logger.warn("Author name is missing or empty; using default author ID and author master ID.");
       }
-
+  
+      // Assign IDs to customerAndStoreNameAndAmount
       this.customerAndStoreNameAndAmount.author_id = authorId;
-
+      this.customerAndStoreNameAndAmount.author_master_id = authorMasterId;
+  
       this.customerAndStoreNameAndAmount.amount = Number(this.transaction.cm_transaction_cf_list_price_vat_excl);
       this.customerAndStoreNameAndAmount.customer_id = this.transaction.cm_transaction_cf_customer;
-      this.customerAndStoreNameAndAmount.display_name = this.transaction.cm_transaction_id;
-
+      this.customerAndStoreNameAndAmount.display_name = this.transaction.cm_transaction_id.toString();
+  
       const storeCode = this.transaction.cm_transaction_cf_store_code;
       if (storeCode && storeCode !== 0) {
-        this.customerAndStoreNameAndAmount.store_id = storeCode;
+        this.customerAndStoreNameAndAmount.store_id = storeCode.toString(); // Ensure store_id is a string
       } else {
         logger.warn("Store code is missing or zero; using default store ID.");
         this.customerAndStoreNameAndAmount.store_id = this.DEFAULT_STORE_ID;
       }
-
+  
       return authorId;
-    } catch (error:any) {
+    } catch (error: any) {
       logger.error("Error processing external API: ", error.response?.data || error.message);
       throw error;
     }
   }
+
+  
 
   private async processThematicElements() {
     const apiKey = process.env.API_KEY;
@@ -296,11 +329,12 @@ export class SaveTransaction {
   private initializeCustomerAndStoreData(): General {
     logger.debug("Initializing customer and store-related data.");
     return {
-      display_name: this.transaction.cm_transaction_id,
-      genre_id: 0,
+      display_name: this.transaction.cm_transaction_id.toString(),
+      genre_id: '0',
       author_id: '',
+      author_master_id: '', // Initialize as an empty string
       customer_id: 0,
-      store_id: 0,
+      store_id: '0',
       amount: 0,
     };
   }
