@@ -1,3 +1,5 @@
+// src/services/trends/storePersistAndPost.ts
+
 import { General } from "../../interfaces/trends/trendsAll";
 import db from "../../model/sqlconfig";
 import axios from "axios";
@@ -127,7 +129,7 @@ async function postStoreTrendToFreshsales(storeTrend: any, data: General) {
       storeTrend.storeTrend_id = response.data.cm_store_trend.id;
       await storeTrend.save();
     }
-  } catch (error:any) {
+  } catch (error: any) {
     logger.error('Error posting store trend to Freshsales:', error.response?.data || error.message);
     throw error;
   }
