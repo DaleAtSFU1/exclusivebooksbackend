@@ -191,40 +191,47 @@ export class SaveTransaction {
 
     try {
       const searchTerm = this.productRes.data.product.custom_field.cf_themacode?.trim();
-
+  
       if (!searchTerm) {
         logger.warn("No thematic code provided; using default genre ID.");
         this.customerAndStoreNameAndAmount.genre_id = this.DEFAULT_GENRE_ID;
         return;
       }
-
+  
       const foundElements: any[] = [];
       const searchTerms = searchTerm.includes('|') ? searchTerm.split('|') : [searchTerm];
-
+  
       for (const term of searchTerms) {
         const query = `name:'${term.trim()}'`;
         const searchUrl = `https://ebsa.myfreshworks.com/crm/sales/api/search?q=${encodeURIComponent(query)}&include=cm_thema`;
         const themaLookupRes = await axios.get(searchUrl, commonConfig);
-
+  
         if (themaLookupRes.data && themaLookupRes.data.length > 0) {
           foundElements.push(...themaLookupRes.data);
         }
       }
-
+  
       if (foundElements.length > 0) {
-        // Assuming you take the first found element
-        const foundElement = foundElements[0];
-        const id = foundElement.id;
-        const themaRes = await axios.get(
-          `https://ebsa.myfreshworks.com/crm/sales/api/custom_module/cm_thema/${id}`,
-          commonConfig
-        );
-        this.customerAndStoreNameAndAmount.genre_id = themaRes.data.cm_thema.custom_field.cf_genre_subgenre || this.DEFAULT_GENRE_ID;
+        // Attempt to find the thema with an exact name match
+        const exactMatch = foundElements.find((element) => element.name === searchTerm);
+        
+        if (exactMatch) {
+          const id = exactMatch.id;
+          const themaRes = await axios.get(
+            `https://ebsa.myfreshworks.com/crm/sales/api/custom_module/cm_thema/${id}`,
+            commonConfig
+          );
+          this.customerAndStoreNameAndAmount.genre_id = themaRes.data.cm_thema.custom_field.cf_genre_subgenre || this.DEFAULT_GENRE_ID;
+          logger.info(`Matched thema '${searchTerm}' with ID: ${id} and Genre ID: ${this.customerAndStoreNameAndAmount.genre_id}`);
+        } else {
+          logger.warn(`No exact thema match found for '${searchTerm}'; using default genre ID.`);
+          this.customerAndStoreNameAndAmount.genre_id = this.DEFAULT_GENRE_ID;
+        }
       } else {
         logger.warn("No thematic elements found; using default genre ID.");
         this.customerAndStoreNameAndAmount.genre_id = this.DEFAULT_GENRE_ID;
       }
-    } catch (error:any) {
+    } catch (error: any) {
       logger.error("Error processing thematic elements: ", error.response?.data || error.message);
       this.customerAndStoreNameAndAmount.genre_id = this.DEFAULT_GENRE_ID;
     }
