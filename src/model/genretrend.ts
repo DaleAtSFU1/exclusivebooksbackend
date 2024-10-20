@@ -32,7 +32,7 @@ module.exports = (sequelize: Sequelize, dataTypes: typeof DataTypes) => {
       genretrend_id: {
         type: dataTypes.BIGINT,
         allowNull: false,
-        unique: true,
+        unique: false,
         field: "genretrend_id",
       },
       customer_id: {
