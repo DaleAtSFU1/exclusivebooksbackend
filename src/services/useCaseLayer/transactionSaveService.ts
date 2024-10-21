@@ -151,8 +151,8 @@ export class SaveTransaction {
 
             if (authorName && authorName !== '') {
                 // Perform search to get author ID
-                const query = `name:'${authorName}'`;
-                const searchUrl = `https://ebsa.myfreshworks.com/crm/sales/api/search?q=${encodeURIComponent(query)}&include=cm_author`;
+                const query = `${authorName}`;
+                const searchUrl = `https://ebsa.myfreshworks.com/crm/sales/api/search?q=${query}&include=cm_author`;
 
                 logger.debug(`Author Search URL: ${searchUrl}`);
 
@@ -224,8 +224,8 @@ export class SaveTransaction {
             const searchTerms = themacode.split('|').map((term: string) => term.trim().toUpperCase());
 
             for (const term of searchTerms) {
-                const query = `name:'${term}'`;
-                const searchUrl = `https://ebsa.myfreshworks.com/crm/sales/api/search?q=${encodeURIComponent(query)}&include=cm_thema`;
+                const query = `${term}`;
+                const searchUrl = `https://ebsa.myfreshworks.com/crm/sales/api/search?q=${query}&include=cm_thema`;
 
                 logger.debug(`Searching for Thema with query: ${query}`);
                 const searchResponse = await axios.get<any[]>(searchUrl, {
