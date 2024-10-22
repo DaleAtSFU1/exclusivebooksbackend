@@ -146,7 +146,7 @@ async function postAuthorTrendToFreshsales(authorTrend: any, data: General) {
     cm_author_trend: {
       name: authorTrend.authorTrend_id.toString(),
       custom_field: {
-        cf_author_master: authorTrend.author_id,
+        author_id: authorTrend.author_id,
         cf_customer: authorTrend.customer_id,
         cf_transaction_count: authorTrend.transaction_count,
         cf_total_spend: authorTrend.amount_spent,
