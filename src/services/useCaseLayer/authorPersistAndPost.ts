@@ -1,5 +1,3 @@
-// src/services/trends/authorPersistAndPost.ts
-
 import { General } from "../../interfaces/trends/trendsAll";
 import db from "../../model/sqlconfig";
 import axios from "axios";

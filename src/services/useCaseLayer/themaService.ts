@@ -1,5 +1,3 @@
-// src/services/themaService.ts
-
 import axios from 'axios';
 import { ThemaDetailsResponse } from '../../interfaces/ThemaDetails';
 import log4js from 'log4js';

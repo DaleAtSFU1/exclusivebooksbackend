@@ -1,5 +1,3 @@
-// src/services/transactions/saveTransaction.ts
-
 import { SaveTransactionRequest } from "../../interfaces/transactions/saveTransactionRequest";
 import log4js from "log4js";
 import { SaveTransactionResponse } from "../../interfaces/transactions/saveTransactionResponse";
